@@ -678,7 +678,7 @@ class RandomDataset(Dataset):
         # generate a batch of target (probability of a click)
         T = generate_random_output_batch(n, self.num_targets, self.round_targets)
 
-        return (X, lS_o, lS_i, T)
+        return X, lS_o, lS_i, T
 
     def __len__(self):
         # WARNING: note that we produce bacthes of outputs in __getitem__
@@ -704,9 +704,7 @@ def collate_wrapper_random_length(list_of_tuples):
             T)
 
 
-def make_random_data_and_loader(args, ln_emb, m_den,
-    offset_to_length_converter=False,
-):
+def make_random_data_and_loader(args, ln_emb, m_den, offset_to_length_converter=False):
 
     train_data = RandomDataset(
         m_den,
