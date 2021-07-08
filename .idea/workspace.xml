@@ -2,8 +2,9 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="dd183199-1ebc-4bbe-ad1d-03784bb69bd4" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/gradient_utils.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/dlrm_s_pytorch.py" beforeDir="false" afterPath="$PROJECT_DIR$/dlrm_s_pytorch.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/gradient_utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/gradient_utils.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -87,43 +88,23 @@
       <breakpoints>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/dlrm_s_pytorch.py</url>
-          <line>1572</line>
-          <option name="timeStamp" value="5" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/dlrm_s_pytorch.py</url>
-          <line>1508</line>
+          <line>1493</line>
           <option name="timeStamp" value="13" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/dlrm_s_pytorch.py</url>
-          <line>1582</line>
-          <option name="timeStamp" value="14" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/dlrm_s_pytorch.py</url>
-          <line>1515</line>
+          <line>1500</line>
           <option name="timeStamp" value="15" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/dlrm_s_pytorch.py</url>
-          <line>1556</line>
+          <line>1541</line>
           <option name="timeStamp" value="16" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/dlrm_s_pytorch.py</url>
-          <line>1559</line>
+          <line>1544</line>
           <option name="timeStamp" value="17" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/dlrm_s_pytorch.py</url>
-          <line>1579</line>
-          <option name="timeStamp" value="19" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/gradient_utils.py</url>
-          <line>9</line>
-          <option name="timeStamp" value="22" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

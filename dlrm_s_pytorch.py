@@ -192,7 +192,6 @@ class LRPolicyScheduler(_LRScheduler):
         return lr
 
 
-### define dlrm in PyTorch ###
 class DLRM_Net(nn.Module):
     def create_mlp(self, ln, sigmoid_layer):
         # build MLP layer by layer
@@ -283,35 +282,35 @@ class DLRM_Net(nn.Module):
         return emb_l, v_W_l
 
     def __init__(
-        self,
-        m_spa=None,
-        ln_emb=None,
-        ln_bot=None,
-        ln_top=None,
-        arch_interaction_op=None,
-        arch_interaction_itself=False,
-        sigmoid_bot=-1,
-        sigmoid_top=-1,
-        sync_dense_params=True,
-        loss_threshold=0.0,
-        ndevices=-1,
-        qr_flag=False,
-        qr_operation="mult",
-        qr_collisions=0,
-        qr_threshold=200,
-        md_flag=False,
-        md_threshold=200,
-        weighted_pooling=None,
-        loss_function="bce"
+            self,
+            m_spa=None,
+            ln_emb=None,
+            ln_bot=None,
+            ln_top=None,
+            arch_interaction_op=None,
+            arch_interaction_itself=False,
+            sigmoid_bot=-1,
+            sigmoid_top=-1,
+            sync_dense_params=True,
+            loss_threshold=0.0,
+            ndevices=-1,
+            qr_flag=False,
+            qr_operation="mult",
+            qr_collisions=0,
+            qr_threshold=200,
+            md_flag=False,
+            md_threshold=200,
+            weighted_pooling=None,
+            loss_function="bce"
     ):
         super(DLRM_Net, self).__init__()
 
         if (
-            (m_spa is not None)
-            and (ln_emb is not None)
-            and (ln_bot is not None)
-            and (ln_top is not None)
-            and (arch_interaction_op is not None)
+                (m_spa is not None)
+                and (ln_emb is not None)
+                and (ln_bot is not None)
+                and (ln_top is not None)
+                and (arch_interaction_op is not None)
         ):
 
             # save arguments
@@ -323,7 +322,7 @@ class DLRM_Net(nn.Module):
             self.arch_interaction_itself = arch_interaction_itself
             self.sync_dense_params = sync_dense_params
             self.loss_threshold = loss_threshold
-            self.loss_function=loss_function
+            self.loss_function = loss_function
             if weighted_pooling is not None and weighted_pooling != "fixed":
                 self.weighted_pooling = "learned"
             else:
@@ -749,14 +748,14 @@ def dash_separated_floats(value):
 
 
 def inference(
-    args,
-    dlrm,
-    best_acc_test,
-    best_auc_test,
-    test_ld,
-    device,
-    use_gpu,
-    log_iter=-1,
+        args,
+        dlrm,
+        best_acc_test,
+        best_auc_test,
+        test_ld,
+        device,
+        use_gpu,
+        log_iter=-1,
 ):
     test_accu = 0
     test_samp = 0
@@ -892,21 +891,14 @@ def inference(
 
 
 def run():
-    ### parse arguments ###
-    parser = argparse.ArgumentParser(
-        description="Train Deep Learning Recommendation Model (DLRM)"
-    )
+    parser = argparse.ArgumentParser(description="Train Deep Learning Recommendation Model (DLRM)")
     # model related parameters
     parser.add_argument("--arch-sparse-feature-size", type=int, default=2)
-    parser.add_argument(
-        "--arch-embedding-size", type=dash_separated_ints, default="4-3-2"
-    )
+    parser.add_argument("--arch-embedding-size", type=dash_separated_ints, default="4-3-2")
     # j will be replaced with the table number
     parser.add_argument("--arch-mlp-bot", type=dash_separated_ints, default="4-3-2")
     parser.add_argument("--arch-mlp-top", type=dash_separated_ints, default="4-2-1")
-    parser.add_argument(
-        "--arch-interaction-op", type=str, choices=["dot", "cat"], default="dot"
-    )
+    parser.add_argument("--arch-interaction-op", type=str, choices=["dot", "cat"], default="dot")
     parser.add_argument("--arch-interaction-itself", action="store_true", default=False)
     parser.add_argument("--weighted-pooling", type=str, default=None)
     # embedding table options
@@ -921,20 +913,14 @@ def run():
     # activations and loss
     parser.add_argument("--activation-function", type=str, default="relu")
     parser.add_argument("--loss-function", type=str, default="mse")  # or bce or wbce
-    parser.add_argument(
-        "--loss-weights", type=dash_separated_floats, default="1.0-1.0"
-    )  # for wbce
+    parser.add_argument("--loss-weights", type=dash_separated_floats, default="1.0-1.0")  # for wbce
     parser.add_argument("--loss-threshold", type=float, default=0.0)  # 1.0e-7
     parser.add_argument("--round-targets", type=bool, default=False)
     # data
     parser.add_argument("--data-size", type=int, default=100)
     parser.add_argument("--num-batches", type=int, default=0)
-    parser.add_argument(
-        "--data-generation", type=str, default="random"
-    )  # synthetic or dataset
-    parser.add_argument(
-        "--rand-data-dist", type=str, default="uniform"
-    )  # uniform or gaussian
+    parser.add_argument("--data-generation", type=str, default="random")  # synthetic or dataset
+    parser.add_argument("--rand-data-dist", type=str, default="uniform")  # uniform or gaussian
     parser.add_argument("--rand-data-min", type=float, default=0)
     parser.add_argument("--rand-data-max", type=float, default=1)
     parser.add_argument("--rand-data-mu", type=float, default=-1)
@@ -952,8 +938,9 @@ def run():
     parser.add_argument("--num-workers", type=int, default=0)
     parser.add_argument("--memory-map", action="store_true", default=False)
     # training
-    parser.add_argument("--mini-batch-size", type=int, default=20)
-    parser.add_argument("--nepochs", type=int, default=1)
+    parser.add_argument("--mini-batch-size", type=int, default=1)
+    parser.add_argument("--batch-size", type=int, default=20)
+    parser.add_argument("--nepochs", type=int, default=10)
     parser.add_argument("--learning-rate", type=float, default=0.01)
     parser.add_argument("--print-precision", type=int, default=5)
     parser.add_argument("--numpy-rand-seed", type=int, default=123)
@@ -1028,15 +1015,11 @@ def run():
             sys.exit("ERROR: mixed dimensions with weighted pooling is not supported")
     if args.quantize_emb_with_bit in [4, 8]:
         if args.qr_flag:
-            sys.exit(
-                "ERROR: 4 and 8-bit quantization with quotient remainder is not supported"
-            )
+            sys.exit("ERROR: 4 and 8-bit quantization with quotient remainder is not supported")
         if args.md_flag:
-            sys.exit(
-                "ERROR: 4 and 8-bit quantization with mixed dimensions is not supported"
-            )
+            sys.exit("ERROR: 4 and 8-bit quantization with mixed dimensions is not supported")
 
-    ### some basic setup ###
+    # some basic setup
     np.random.seed(args.numpy_rand_seed)
     np.set_printoptions(precision=args.print_precision)
     torch.set_printoptions(precision=args.print_precision)
@@ -1068,7 +1051,7 @@ def run():
         device = torch.device("cpu")
         print("Using CPU...")
 
-    ### prepare training data ###
+    # prepare training data
     ln_bot = np.fromstring(args.arch_mlp_bot, dtype=int, sep="-")
     # input data
 
@@ -1342,7 +1325,7 @@ def run():
             args.lr_num_decay_steps,
         )
 
-    ### main loop ###
+    # main loop ###
 
     # training or inference
     best_acc_test = 0
@@ -1353,6 +1336,8 @@ def run():
     total_loss = 0
     total_iter = 0
     total_samp = 0
+
+    G = None  # initialize Jacobian to None
 
     if args.mlperf_logging:
         mlperf_logger.mlperf_submission_log("dlrm")
@@ -1479,7 +1464,7 @@ def run():
 
     ext_dist.barrier()
     with torch.autograd.profiler.profile(
-        args.enable_profiling, use_cuda=use_gpu, record_shapes=True
+            args.enable_profiling, use_cuda=use_gpu, record_shapes=True
     ) as prof:
         if not args.inference_only:
             k = 0
@@ -1571,16 +1556,31 @@ def run():
                     # A_shifted = np.sum((np.round(S_shifted, 0) == T).astype(np.uint8))
 
                     with record_function("DLRM backward"):
-                        # scaled error gradient propagation
-                        # (where we do not accumulate gradients across mini-batches)
-                        if (args.mlperf_logging and (j + 1) % args.mlperf_grad_accum_iter == 0) or not args.mlperf_logging:
-                            optimizer.zero_grad()
-                        # backward pass
+                        # scaled error gradient propagation (where we do not accumulate gradients across
+                        # mini-batches) Anish Commenting : TODO (Ask in DLRM group)
+                        #  if (args.mlperf_logging and (j +
+                        #  1) % args.mlperf_grad_accum_iter == 0) or not args.mlperf_logging: optimizer.zero_grad()
+                        #  backward pass
                         E.backward()
+
+                        # Note: No Optimizer Step yet.
                         g_i = flatten_grads(learner=dlrm)
 
-                        # optimizer
-                        if (args.mlperf_logging and (j + 1) % args.mlperf_grad_accum_iter == 0) or not args.mlperf_logging:
+                        if G is None:
+                            d = len(g_i)
+                            print("Num of Parameters {}".format(d))
+                            G = np.zeros((args.batch_size, d), dtype=g_i.dtype)
+
+                        ix = j % args.batch_size
+                        agg_ix = (j + 1) % args.batch_size
+                        G[ix, :] = g_i
+
+                        # aggregation step
+                        # ANish Commenting : TODO: (Ask dlrm group)
+                        # if (args.mlperf_logging and (j + 1) % args.mlperf_grad_accum_iter == 0) \
+                        #         or not args.mlperf_logging:
+                        if agg_ix == 0 and j is not 0:
+
                             optimizer.step()
                             lr_scheduler.step()
 
@@ -1594,13 +1594,11 @@ def run():
                     total_iter += 1
                     total_samp += mbs
 
-                    should_print = ((j + 1) % args.print_freq == 0) or (
-                        j + 1 == nbatches
-                    )
+                    should_print = ((j + 1) % args.print_freq == 0) or (j + 1 == nbatches)
                     should_test = (
-                        (args.test_freq > 0)
-                        and (args.data_generation in ["dataset", "random"])
-                        and (((j + 1) % args.test_freq == 0) or (j + 1 == nbatches))
+                            (args.test_freq > 0)
+                            and (args.data_generation in ["dataset", "random"])
+                            and (((j + 1) % args.test_freq == 0) or (j + 1 == nbatches))
                     )
 
                     # print time, loss and accuracy
@@ -1664,9 +1662,9 @@ def run():
                         )
 
                         if (
-                            is_best
-                            and not (args.save_model == "")
-                            and not args.inference_only
+                                is_best
+                                and not (args.save_model == "")
+                                and not args.inference_only
                         ):
                             model_metrics_dict["epoch"] = k
                             model_metrics_dict["iter"] = j + 1
@@ -1692,9 +1690,9 @@ def run():
                         # .format(time_wrap(use_gpu) - accum_test_time_begin))
 
                         if (
-                            args.mlperf_logging
-                            and (args.mlperf_acc_threshold > 0)
-                            and (best_acc_test > args.mlperf_acc_threshold)
+                                args.mlperf_logging
+                                and (args.mlperf_acc_threshold > 0)
+                                and (best_acc_test > args.mlperf_acc_threshold)
                         ):
                             print(
                                 "MLPerf testing accuracy threshold "
@@ -1704,9 +1702,9 @@ def run():
                             break
 
                         if (
-                            args.mlperf_logging
-                            and (args.mlperf_auc_threshold > 0)
-                            and (best_auc_test > args.mlperf_auc_threshold)
+                                args.mlperf_logging
+                                and (args.mlperf_auc_threshold > 0)
+                                and (best_auc_test > args.mlperf_auc_threshold)
                         ):
                             print(
                                 "MLPerf testing auc threshold "
