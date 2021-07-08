@@ -91,8 +91,9 @@ from torch.optim.lr_scheduler import _LRScheduler
 import optim.rwsadagrad as RowWiseSparseAdagrad
 from torch.utils.tensorboard import SummaryWriter
 
-from gradient_utils import flatten_grads
+from gradient_utils import flatten_grads, dist_grads_to_model
 from matrix_sparse_selection import SparseApproxMatrix
+from gar import get_gar
 
 # mixed-dimension trick
 from tricks.md_embedding_bag import PrEmbeddingBag, md_solver
@@ -939,9 +940,8 @@ def run():
     parser.add_argument("--num-indices-per-lookup-fixed", type=bool, default=False)
     parser.add_argument("--num-workers", type=int, default=0)
     parser.add_argument("--memory-map", action="store_true", default=False)
+
     # training
-    parser.add_argument("--mini-batch-size", type=int, default=1)
-    parser.add_argument("--batch-size", type=int, default=20)
     parser.add_argument("--nepochs", type=int, default=10)
     parser.add_argument("--learning-rate", type=float, default=0.01)
     parser.add_argument("--print-precision", type=int, default=5)
@@ -959,11 +959,13 @@ def run():
     )
 
     # Jacobian Related Configs
+    parser.add_argument("--mini-batch-size", type=int, default=1) # For Now Mini Batches = 1
+    parser.add_argument("--batch-size", type=int, default=20) # This is the batch size ~ agg
     parser.add_argument("--sampling_rule", type=str, default=None)
     parser.add_argument("--axis", type=str, default='dim')
     parser.add_argument("--beta", type=float, default=1)
     parser.add_argument("--ef", type=bool, default=False)
-
+    parser.add_argument("--gar", type=str, default='mean')
     # inference
     parser.add_argument("--inference-only", action="store_true", default=False)
     # quantize
@@ -1346,6 +1348,7 @@ def run():
     total_iter = 0
     total_samp = 0
 
+    # Jacobian Related inits - TODO: Review
     G = None  # initialize Jacobian to None
     # sparse approximation of the gradients before aggregating
     if args.sampling_rule not in ['active_norm', 'random']:
@@ -1355,6 +1358,8 @@ def run():
                                                     axis=args.axis,
                                                     beta=args.beta,
                                                     ef=args.ef)
+    gar = get_gar(gar=args.gar)
+
     if args.mlperf_logging:
         mlperf_logger.mlperf_submission_log("dlrm")
         mlperf_logger.log_event(
@@ -1575,24 +1580,25 @@ def run():
                         # scaled error gradient propagation (where we do not accumulate gradients across
                         # mini-batches) Anish Commenting : TODO (Ask in DLRM group)
                         #  if (args.mlperf_logging and (j +
-                        #  1) % args.mlperf_grad_accum_iter == 0) or not args.mlperf_logging: optimizer.zero_grad()
+                        #  1) % args.mlperf_grad_accum_iter == 0) or not args.mlperf_logging:
+
                         #  backward pass
+                        optimizer.zero_grad()
                         E.backward()
 
                         # Note: No Optimizer Step yet.
                         g_i = flatten_grads(learner=dlrm)
 
                         if G is None:
-                            d = len(g_i)
-                            print("Num of Parameters {}".format(d))
-                            G = np.zeros((args.batch_size, d), dtype=g_i.dtype)
+                            print("Num of Parameters {}".format(len(g_i)))
+                            G = np.zeros((args.batch_size, len(g_i)), dtype=g_i.dtype)
 
                         ix = j % args.batch_size
                         agg_ix = (j + 1) % args.batch_size
                         G[ix, :] = g_i
 
                         # aggregation step
-                        # ANish Commenting : TODO: (Ask dlrm group)
+                        # Anish Commenting : TODO: (Ask dlrm group)
                         # if (args.mlperf_logging and (j + 1) % args.mlperf_grad_accum_iter == 0) \
                         #         or not args.mlperf_logging:
                         if agg_ix == 0 and j is not 0:
@@ -1600,6 +1606,11 @@ def run():
                             I_k = None
                             if jacobian_sparse_approx is not None:
                                 G, I_k = jacobian_sparse_approx.sparse_approx(G=G, lr=lr_ef)
+
+                            agg_g = gar.aggregate(G=G, ix=I_k,
+                                                  axis=jacobian_sparse_approx.axis if jacobian_sparse_approx else 0)
+                            optimizer.zero_grad()
+                            dist_grads_to_model(grads=agg_g, learner=dlrm)
 
                             optimizer.step()
                             lr_scheduler.step()
