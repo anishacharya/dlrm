@@ -2,9 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="dd183199-1ebc-4bbe-ad1d-03784bb69bd4" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dlrm_s_pytorch.py" beforeDir="false" afterPath="$PROJECT_DIR$/dlrm_s_pytorch.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/gradient_utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/gradient_utils.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/matrix_sparse_selection.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -32,6 +30,11 @@
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="restartRequiresConfirmation" value="false" />
+  </component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$" />
+    </key>
   </component>
   <component name="RunManager">
     <configuration name="dlrm_s_pytorch" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">

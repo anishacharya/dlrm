@@ -955,6 +955,13 @@ def run():
                         The Terabyte dataset can be multiprocessed in an environment \
                         with more than 24 CPU cores and at least 1 TB of memory.",
     )
+
+    # Jacobian Related Configs
+    parser.add_argument("--sampling_rule", action="store_true", type=str, default=None)
+    parser.add_argument("--axis", action="store_true", type=str, default='dim')
+    parser.add_argument("--beta", action="store_true", type=float, default=1)
+    parser.add_argument("--ef", action="store_true", type=bool, default=False)
+
     # inference
     parser.add_argument("--inference-only", action="store_true", default=False)
     # quantize
