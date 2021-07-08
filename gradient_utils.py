@@ -10,7 +10,7 @@ def flatten_grads(learner) -> np.ndarray:
         grad = w.grad.data
         if grad.is_sparse:
             grad = grad.to_dense()
-        flattened = [torch.reshape(grad, (-1,)).numpy()]
+        flattened = torch.reshape(grad, (-1,))
         flat_grad.extend(flattened)
     return np.array(flat_grad)
 
