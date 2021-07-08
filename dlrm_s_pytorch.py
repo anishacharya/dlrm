@@ -91,6 +91,7 @@ from torch.optim.lr_scheduler import _LRScheduler
 import optim.rwsadagrad as RowWiseSparseAdagrad
 from torch.utils.tensorboard import SummaryWriter
 
+from gradient_utils import flatten_grads
 # mixed-dimension trick
 from tricks.md_embedding_bag import PrEmbeddingBag, md_solver
 
@@ -1576,6 +1577,7 @@ def run():
                             optimizer.zero_grad()
                         # backward pass
                         E.backward()
+                        g_i = flatten_grads(learner=dlrm)
 
                         # optimizer
                         if (args.mlperf_logging and (j + 1) % args.mlperf_grad_accum_iter == 0) or not args.mlperf_logging:
