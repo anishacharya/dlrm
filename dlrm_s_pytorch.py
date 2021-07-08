@@ -92,6 +92,8 @@ import optim.rwsadagrad as RowWiseSparseAdagrad
 from torch.utils.tensorboard import SummaryWriter
 
 from gradient_utils import flatten_grads
+from matrix_sparse_selection import SparseApproxMatrix
+
 # mixed-dimension trick
 from tricks.md_embedding_bag import PrEmbeddingBag, md_solver
 
@@ -957,10 +959,10 @@ def run():
     )
 
     # Jacobian Related Configs
-    parser.add_argument("--sampling_rule", action="store_true", type=str, default=None)
-    parser.add_argument("--axis", action="store_true", type=str, default='dim')
-    parser.add_argument("--beta", action="store_true", type=float, default=1)
-    parser.add_argument("--ef", action="store_true", type=bool, default=False)
+    parser.add_argument("--sampling_rule", type=str, default=None)
+    parser.add_argument("--axis", type=str, default='dim')
+    parser.add_argument("--beta", type=float, default=1)
+    parser.add_argument("--ef", type=bool, default=False)
 
     # inference
     parser.add_argument("--inference-only", action="store_true", default=False)
@@ -1345,7 +1347,14 @@ def run():
     total_samp = 0
 
     G = None  # initialize Jacobian to None
-
+    # sparse approximation of the gradients before aggregating
+    if args.sampling_rule not in ['active_norm', 'random']:
+        jacobian_sparse_approx = None
+    else:
+        jacobian_sparse_approx = SparseApproxMatrix(sampling_rule=args.sampling_rule,
+                                                    axis=args.axis,
+                                                    beta=args.beta,
+                                                    ef=args.ef)
     if args.mlperf_logging:
         mlperf_logger.mlperf_submission_log("dlrm")
         mlperf_logger.log_event(
@@ -1587,6 +1596,10 @@ def run():
                         # if (args.mlperf_logging and (j + 1) % args.mlperf_grad_accum_iter == 0) \
                         #         or not args.mlperf_logging:
                         if agg_ix == 0 and j is not 0:
+                            lr_ef = optimizer.param_groups[0]['lr']
+                            I_k = None
+                            if jacobian_sparse_approx is not None:
+                                G, I_k = jacobian_sparse_approx.sparse_approx(G=G, lr=lr_ef)
 
                             optimizer.step()
                             lr_scheduler.step()
