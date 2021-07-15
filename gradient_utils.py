@@ -10,7 +10,7 @@ def flatten_grads(learner) -> np.ndarray:
         grad = w.grad.data
         if grad.is_sparse:
             grad = grad.to_dense()
-        flattened = torch.reshape(grad, (-1,))
+        flattened = torch.reshape(grad, (-1,)).tolist()
         flat_grad.extend(flattened)
     return np.array(flat_grad)
 
@@ -23,5 +23,7 @@ def dist_grads_to_model(grads, learner):
     for param in parameters:
         new_size = functools.reduce(lambda x, y: x * y, param.shape)
         current_data = grads[offset:offset + new_size]
-        param.grad = torch.from_numpy(current_data.reshape(param.shape))
+        current_data = torch.from_numpy(current_data.reshape(param.shape))
+        current_data = current_data.type(param.grad.dtype)
+        param.grad = current_data
         offset += new_size
