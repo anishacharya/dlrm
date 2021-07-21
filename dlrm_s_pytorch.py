@@ -1012,7 +1012,7 @@ def run():
     global nbatches_test
     global writer
     args = parser.parse_args()
-
+    args_dict = args.__dict__
     if args.mlperf_logging:
         mlperf_logger.log_event(key=mlperf_logger.constants.CACHE_CLEAR, value=True)
         mlperf_logger.log_start(
