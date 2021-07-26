@@ -140,10 +140,31 @@ def dlrm_wrap(X, lS_o, lS_i, use_gpu, device, ndevices=1):
         return dlrm(X.to(device), lS_o, lS_i)
 
 
+def grad_norm(parameters) -> float:
+    # from torch clip norm
+    parameters = [p for p in parameters if p.grad is not None]
+    device = parameters[0].grad.device
+    total_norm = torch.norm(torch.stack([torch.norm(p.grad.detach(), 2).to(device) for p in parameters]), 2)
+    return total_norm
+
+
 def loss_fn_wrap(Z, T, use_gpu, device):
     with record_function("DLRM loss compute"):
         if args.loss_function == "mse" or args.loss_function == "bce":
-            return dlrm.loss_fn(Z, T.to(device))
+            loss = dlrm.loss_fn(Z, T.to(device))
+            if args.loss_sampling == 'top_norm':
+                norm_dist = []
+                for i in range(loss.size(0)):
+                    loss[i].backward(retain_graph=True)
+                    # Now net should have grad of i th sample - calculate norm
+                    norm_i = grad_norm(dlrm.parameters()).item()
+                    dlrm.zero_grad()
+                    norm_dist.append(norm_i)
+                norm_dist = torch.tensor(norm_dist)
+                top_k_ = torch.topk(norm_dist, 10)
+                ix = top_k_.indices
+                loss = torch.index_select(input=loss, dim=0, index=ix)
+            return loss
         elif args.loss_function == "wbce":
             loss_ws_ = dlrm.loss_ws[T.data.view(-1).long()].view_as(T).to(device)
             loss_fn_ = dlrm.loss_fn(Z, T.to(device))
@@ -375,9 +396,9 @@ class DLRM_Net(nn.Module):
 
             # specify the loss function
             if self.loss_function == "mse":
-                self.loss_fn = torch.nn.MSELoss(reduction="mean")
+                self.loss_fn = torch.nn.MSELoss(reduction='none')
             elif self.loss_function == "bce":
-                self.loss_fn = torch.nn.BCELoss(reduction="mean")
+                self.loss_fn = torch.nn.BCELoss(reduction='none')
             elif self.loss_function == "wbce":
                 self.loss_ws = torch.tensor(
                     np.fromstring(args.loss_weights, dtype=float, sep="-")
@@ -915,12 +936,12 @@ def run():
     parser.add_argument("--qr-collisions", type=int, default=4)
     # activations and loss
     parser.add_argument("--activation-function", type=str, default="relu")
-    parser.add_argument("--loss-function", type=str, default="mse")  # or bce or wbce
+    parser.add_argument("--loss-function", type=str, default="bce")  # or bce or wbce
     parser.add_argument("--loss-weights", type=dash_separated_floats, default="1.0-1.0")  # for wbce
     parser.add_argument("--loss-threshold", type=float, default=0.0)  # 1.0e-7
     parser.add_argument("--round-targets", type=bool, default=False)
     # data
-    parser.add_argument("--data-size", type=int, default=100)
+    parser.add_argument("--data-size", type=int, default=1000)
     parser.add_argument("--num-batches", type=int, default=0)
     parser.add_argument("--data-generation", type=str, default="random")  # synthetic or dataset
     parser.add_argument("--rand-data-dist", type=str, default="uniform")  # uniform or gaussian
@@ -959,8 +980,8 @@ def run():
     )
 
     # Jacobian Related Configs
-    parser.add_argument("--mini-batch-size", type=int, default=1) # For Now Mini Batches = 1
-    parser.add_argument("--batch-size", type=int, default=20) # This is the batch size ~ agg
+    parser.add_argument("--mini-batch-size", type=int, default=32)  # For Now Mini Batches = 1
+    parser.add_argument("--batch-size", type=int, default=1)  # This is the batch size ~ agg
     parser.add_argument("--sampling_rule", type=str, default=None)
     parser.add_argument("--axis", type=str, default='dim')
     parser.add_argument("--beta", type=float, default=1)
@@ -1006,6 +1027,7 @@ def run():
     parser.add_argument("--lr-num-warmup-steps", type=int, default=0)
     parser.add_argument("--lr-decay-start-step", type=int, default=0)
     parser.add_argument("--lr-num-decay-steps", type=int, default=0)
+    parser.add_argument("--loss_sampling", type=str, default='top_norm')
 
     global args
     global nbatches
@@ -1561,7 +1583,7 @@ def run():
 
                     # loss
                     E = loss_fn_wrap(Z, T, use_gpu, device)
-
+                    E = torch.mean(torch.topk(E, min(args.mini_batch_size, args.beta), sorted=False, dim=0)[0])
                     # compute loss and accuracy
                     L = E.detach().cpu().numpy()  # numpy array
                     # training accuracy is not disabled

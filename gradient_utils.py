@@ -5,6 +5,8 @@ import functools
 
 def flatten_grads(learner) -> np.ndarray:
     """ Given a model flatten all grads and return as np array """
+    for name, param in learner.named_parameters():
+        print(name, param.size())
     flat_grad = []
     for w in learner.parameters():
         grad = w.grad.data
